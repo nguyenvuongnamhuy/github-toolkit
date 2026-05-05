@@ -2,6 +2,9 @@
 
 A Chrome extension to manage GitHub Pull Requests — create PRs, bulk-approve, merge, and check status across multiple repositories.
 
+<img width="481" height="241" alt="Screenshot 2026-05-05 at 17 54 28" src="https://github.com/user-attachments/assets/fd3dbbea-d3c8-496d-8999-a59e16d0a607" />
+<img width="482" height="390" alt="Screenshot 2026-05-05 at 17 54 35" src="https://github.com/user-attachments/assets/fc80bfa0-dcba-4289-a8d9-95bdba89c08c" />
+
 ## Features
 
 ### Tab 1 — Create PRs
