@@ -26,11 +26,25 @@ A Chrome extension (Manifest V3) to manage GitHub Pull Requests: bulk-approve PR
 - All API calls use `authHeaders()` shared helper returning `Authorization: token <PAT>` headers
 - Results are rendered as `<a>` tags; `Promise.allSettled` is used throughout so failures never block other items
 
-## Tab 1 — Bulk Approve
+## Tab 1 — Bulk Approve + Check Status
+
+Two independent action buttons share the same textarea, result list, and global status bar:
+
+**Check Status (`🔍 Check Status`)**
+
+- **API**: `GET /repos/{owner}/{repo}/pulls/{pull_number}` via `getPrStatus()`
+- Status mapping from response: `merged: true` → ✅ Merged; `state: "closed"` → 🔴 Closed; `mergeable_state: "dirty"` → ⚠️ Conflict; otherwise → 🟢 Open
+- Result row appends a `.result-label` span (not `.result-err`) with the status text
+- `.result-row.warn` (yellow left border) used for Conflict rows
+- Summary: `"Checked N PR(s): X merged, Y open, Z conflict, W closed"`
+
+**Approve All (`✅ Approve All`)**
 
 - **API**: `POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews` with `{ "event": "APPROVE" }`
 - `getUrls()` extracts GitHub PR URLs from each textarea line (noise-tolerant regex)
 - Results show `owner/repo #number` as clickable links
+
+Both buttons disable textarea + both action buttons while running, then re-enable on completion.
 
 ## Tab 2 — Create PRs
 

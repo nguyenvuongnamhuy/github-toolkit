@@ -8,8 +8,11 @@ A Chrome extension to manage GitHub Pull Requests — bulk approve and auto-crea
 
 - Paste up to hundreds of PR URLs at once (one per line)
 - Smart URL extraction — works even if lines have noise like `[TAG] url ✅` or `:::: url (note)`
-- Approves all PRs in parallel via GitHub API
-- Per-PR status: ⏳ pending → ✅ approved / ❌ failed
+- **🔍 Check Status** — fetches and displays each PR's current state:
+  - ✅ Merged, 🟢 Open, ⚠️ Conflict, 🔴 Closed
+- **✅ Approve All** — approves all PRs in parallel via GitHub API
+- Both actions are independent — running one does not affect the other
+- Per-PR status: ⏳ pending → result icon + label / ❌ failed
 - Clickable result links (`owner/repo #123`)
 - URLs are saved so they persist after closing the popup
 
@@ -47,11 +50,11 @@ const GITHUB_TOKEN = "ghp_your_actual_token_here";
 
 ## Usage
 
-**Bulk Approve:**
+**Bulk Approve / Check Status:**
 
 1. Click the extension icon
 2. Paste PR URLs into the textarea (one per line)
-3. Click **✅ Approve All**
+3. Click **🔍 Check Status** to see merge/conflict state, or **✅ Approve All** to approve
 
 **Create PRs:**
 
@@ -69,6 +72,6 @@ const GITHUB_TOKEN = "ghp_your_actual_token_here";
 │   └── popup.js
 ├── icons/
 ├── manifest.json
-├── config.js            # your token (gitignored)
+├── config.js            # sensitive information (gitignored)
 └── config.example.js
 ```

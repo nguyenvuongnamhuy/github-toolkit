@@ -98,6 +98,10 @@ h1 {
   border-left: 3px solid #cf222e;
 }
 
+.result-row.warn {
+  border-left: 3px solid #d4a72c;
+}
+
 .result-row.pending {
   border-left: 3px solid #8c959f;
 }
@@ -130,6 +134,13 @@ h1 {
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.result-label {
+  font-size: 11px;
+  color: #57606a;
+  white-space: nowrap;
+  font-weight: 500;
 }
 
 /* Actions */

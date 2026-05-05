@@ -5,6 +5,7 @@ const STORAGE_KEY_CREATE = "create_prs_state";
 // Tab 1 elements
 const textarea = document.getElementById("pr-textarea");
 const clearBtn = document.getElementById("clear-btn");
+const checkStatusBtn = document.getElementById("check-status-btn");
 const approveBtn = document.getElementById("approve-btn");
 const globalStatus = document.getElementById("global-status");
 const resultList = document.getElementById("result-list");
@@ -72,6 +73,19 @@ async function approvePr(owner, repo, pull_number) {
     },
   );
 
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${response.status}`);
+  }
+  return response.json();
+}
+
+// Fetch PR status from GitHub API
+async function getPrStatus(owner, repo, pull_number) {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/pulls/${pull_number}`,
+    { headers: authHeaders() },
+  );
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err.message || `HTTP ${response.status}`);
@@ -183,6 +197,113 @@ clearBtn.addEventListener("click", () => {
   resultList.innerHTML = "";
   hideGlobal();
   saveUrls();
+});
+
+checkStatusBtn.addEventListener("click", async () => {
+  const urls = getUrls();
+
+  if (!urls.length) {
+    showGlobal("Please enter at least one PR URL.", "error");
+    return;
+  }
+
+  if (!GITHUB_TOKEN || GITHUB_TOKEN === "ghp_your_token_here") {
+    showGlobal("❌ Please set your GitHub token in config.js", "error");
+    return;
+  }
+
+  checkStatusBtn.disabled = true;
+  approveBtn.disabled = true;
+  clearBtn.disabled = true;
+  textarea.disabled = true;
+  hideGlobal();
+
+  resultList.innerHTML = "";
+  const rowEls = urls.map((url) => {
+    const el = createResultRow(url, "⏳", "pending");
+    resultList.appendChild(el);
+    return el;
+  });
+
+  resultList.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  const counts = { merged: 0, closed: 0, conflict: 0, open: 0, failed: 0 };
+
+  await Promise.allSettled(
+    urls.map(async (url, i) => {
+      const parsed = parsePrUrl(url);
+      if (!parsed) {
+        rowEls[i].className = "result-row fail";
+        rowEls[i].querySelector(".result-icon").textContent = "❌";
+        const err = document.createElement("span");
+        err.className = "result-err";
+        err.textContent = "Invalid URL";
+        rowEls[i].appendChild(err);
+        counts.failed++;
+        return;
+      }
+      try {
+        const pr = await getPrStatus(
+          parsed.owner,
+          parsed.repo,
+          parsed.pull_number,
+        );
+        let icon, cls, label;
+        if (pr.merged) {
+          icon = "✅";
+          cls = "ok";
+          label = "Merged";
+          counts.merged++;
+        } else if (pr.state === "closed") {
+          icon = "🔴";
+          cls = "fail";
+          label = "Closed";
+          counts.closed++;
+        } else if (pr.mergeable_state === "dirty") {
+          icon = "⚠️";
+          cls = "warn";
+          label = "Conflict";
+          counts.conflict++;
+        } else {
+          icon = "🟢";
+          cls = "ok";
+          label = "Open";
+          counts.open++;
+        }
+        rowEls[i].className = `result-row ${cls}`;
+        rowEls[i].querySelector(".result-icon").textContent = icon;
+        const labelEl = document.createElement("span");
+        labelEl.className = "result-label";
+        labelEl.textContent = label;
+        rowEls[i].appendChild(labelEl);
+      } catch (err) {
+        rowEls[i].className = "result-row fail";
+        rowEls[i].querySelector(".result-icon").textContent = "❌";
+        const errEl = document.createElement("span");
+        errEl.className = "result-err";
+        errEl.textContent = err.message;
+        errEl.title = err.message;
+        rowEls[i].appendChild(errEl);
+        counts.failed++;
+      }
+    }),
+  );
+
+  const parts = [];
+  if (counts.merged) parts.push(`${counts.merged} merged`);
+  if (counts.open) parts.push(`${counts.open} open`);
+  if (counts.conflict) parts.push(`${counts.conflict} conflict`);
+  if (counts.closed) parts.push(`${counts.closed} closed`);
+  if (counts.failed) parts.push(`${counts.failed} failed`);
+  showGlobal(
+    `Checked ${urls.length} PR(s): ${parts.join(", ")}.`,
+    counts.failed ? "error" : "success",
+  );
+
+  checkStatusBtn.disabled = false;
+  approveBtn.disabled = false;
+  clearBtn.disabled = false;
+  textarea.disabled = false;
 });
 
 approveBtn.addEventListener("click", async () => {
