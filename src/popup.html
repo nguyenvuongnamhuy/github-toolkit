@@ -16,29 +16,12 @@
     </header>
 
     <div class="tab-bar">
-      <button class="tab-btn active" data-tab="approve">✅ Bulk Approve</button>
-      <button class="tab-btn" data-tab="create">🔀 Create PRs</button>
+      <button class="tab-btn active" data-tab="create">🔀 Create PRs</button>
+      <button class="tab-btn" data-tab="approve">📋 Manage PRs</button>
     </div>
 
-    <!-- Tab 1: Bulk Approve -->
-    <div class="tab-panel" id="tab-approve">
-      <label class="textarea-label">Paste PR URLs (one per line)</label>
-      <textarea id="pr-textarea" class="pr-textarea"
-        placeholder="https://github.com/owner/repo/pull/1&#10;https://github.com/owner/repo/pull/2&#10;..." rows="8"
-        spellcheck="false"></textarea>
-
-      <div class="actions">
-        <button id="check-status-btn" class="btn btn-secondary">🔍 Check Status</button>
-        <button id="approve-btn" class="btn btn-primary">✅ Approve All</button>
-        <button id="clear-btn" class="btn btn-secondary">🗑 Clear</button>
-      </div>
-
-      <div id="global-status" class="global-status hidden"></div>
-      <div id="result-list" class="result-list"></div>
-    </div>
-
-    <!-- Tab 2: Create PRs -->
-    <div class="tab-panel hidden" id="tab-create">
+    <!-- Tab 1: Create PRs -->
+    <div class="tab-panel" id="tab-create">
       <div class="branch-inputs">
         <div class="input-group">
           <label class="input-label">From branch</label>
@@ -57,10 +40,31 @@
       <div id="create-status" class="global-status hidden"></div>
       <div id="create-result-list" class="result-list"></div>
     </div>
+
+    <!-- Tab 2: Manage PRs -->
+    <div class="tab-panel hidden" id="tab-approve">
+      <label class="textarea-label">Paste PR URLs (one per line)</label>
+      <textarea id="pr-textarea" class="pr-textarea"
+        placeholder="https://github.com/owner/repo/pull/1&#10;https://github.com/owner/repo/pull/2&#10;..." rows="8"
+        spellcheck="false"></textarea>
+
+      <div class="actions">
+        <button id="check-status-btn" class="btn btn-secondary">🔍 Check Status</button>
+        <button id="approve-btn" class="btn btn-primary">✅ Approve All</button>
+        <button id="merge-btn" class="btn btn-primary">🔀 Merge All</button>
+        <button id="clear-btn" class="btn btn-secondary">🗑 Clear</button>
+      </div>
+
+      <div id="global-status" class="global-status hidden"></div>
+      <div id="result-list" class="result-list"></div>
+    </div>
   </div>
 
   <script src="../config.js"></script>
   <script src="popup.js"></script>
+  <script src="github-api.js"></script>
+  <script src="manage-prs.js"></script>
+  <script src="create-prs.js"></script>
 </body>
 
 </html>

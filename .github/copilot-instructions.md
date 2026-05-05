@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A Chrome extension (Manifest V3) to manage GitHub Pull Requests: bulk-approve PRs and auto-create PRs across org repos. Two-tab popup UI.
+A Chrome extension (Manifest V3) to manage GitHub Pull Requests: create PRs across org repos, bulk-approve, merge, and check status. Two-tab popup UI. Tab order: **Create PRs** (first, default active), **Manage PRs** (second).
 
 ## Structure
 
@@ -10,7 +10,10 @@ A Chrome extension (Manifest V3) to manage GitHub Pull Requests: bulk-approve PR
 ├── src/
 │   ├── popup.html       # Extension popup UI (tab bar + 2 tab panels)
 │   ├── popup.css        # Light theme styles (GitHub-style)
-│   └── popup.js         # All popup logic — tab switching, API calls, rendering
+│   ├── popup.js         # Constants (STORAGE_KEY*) + tab switching only
+│   ├── github-api.js    # All GitHub API functions (authHeaders, parsePrUrl, approvePr, mergePr, getPrStatus, fetchFilteredRepos, createPr, etc.)
+│   ├── manage-prs.js    # Tab "Manage PRs" — element refs, UI helpers, Check Status / Approve All / Merge All handlers
+│   └── create-prs.js    # Tab "Create PRs" — element refs, UI helpers, Create PRs handler, state restore
 ├── icons/               # icon16.png, icon48.png, icon128.png
 ├── manifest.json        # MV3 manifest — name: "GitHub Toolkit"
 ├── config.js            # GITHUB_TOKEN, ORG, REPO_PREFIXES, REPO_SUFFIXES (gitignored, never commit)
@@ -20,15 +23,28 @@ A Chrome extension (Manifest V3) to manage GitHub Pull Requests: bulk-approve PR
 ## Key Conventions
 
 - **No build step** — plain HTML/CSS/JS, loaded directly by Chrome
-- **`config.js`** is gitignored; exports globals `GITHUB_TOKEN`, `ORG`, `REPO_PREFIXES`, `REPO_SUFFIXES` loaded before `popup.js` in the HTML
+- **`config.js`** is gitignored; exports globals `GITHUB_TOKEN`, `ORG`, `REPO_PREFIXES`, `REPO_SUFFIXES` loaded before other scripts in the HTML
+- **Script load order**: `config.js` → `popup.js` → `github-api.js` → `manage-prs.js` → `create-prs.js` — all share global scope, no build step
 - **Tab switching** — `.tab-btn[data-tab]` toggles `.hidden` on `.tab-panel` elements
 - **`chrome.storage.local`** — Tab 1 persists textarea URLs under `pr_urls`; Tab 2 persists full results state under `create_prs_state`
 - All API calls use `authHeaders()` shared helper returning `Authorization: token <PAT>` headers
 - Results are rendered as `<a>` tags; `Promise.allSettled` is used throughout so failures never block other items
 
-## Tab 1 — Bulk Approve + Check Status
+## Tab 1 — Create PRs
 
-Two independent action buttons share the same textarea, result list, and global status bar:
+- **Org + filter config** loaded from `config.js`: `ORG`, `REPO_PREFIXES`, `REPO_SUFFIXES`
+- `fetchFilteredRepos()` — paginates `GET /orgs/{org}/repos`, filters by prefix + suffix + `archived: false`
+- **From/To branch inputs** accept comma-separated fallback names (e.g. `dev, develop`); `branchExists()` checks each per repo in order
+- `createPrWithFallback()` resolves the first existing from/to branch per repo then calls `createPr()`
+- `createPr()` — `POST /repos/{owner}/{repo}/pulls`; on `422` checks `errors[0].message` for "already exists" → calls `getExistingPr()` and returns `{ status: "exists", pr }`
+- Error rows link to `/{owner}/{repo}/pulls`; ⚠️ and ✅ rows link to the specific PR
+- **📋 Copy PRs** button appears after run; copies all ✅/⚠️ PR URLs to clipboard
+- **🗑 Clear** resets inputs, results, and removes `create_prs_state` from storage
+- Full results state is serialized to `chrome.storage.local` after each run and restored on popup open
+
+## Tab 2 — Manage PRs
+
+Three independent action buttons share the same textarea, result list, and global status bar:
 
 **Check Status (`🔍 Check Status`)**
 
@@ -44,19 +60,13 @@ Two independent action buttons share the same textarea, result list, and global 
 - `getUrls()` extracts GitHub PR URLs from each textarea line (noise-tolerant regex)
 - Results show `owner/repo #number` as clickable links
 
-Both buttons disable textarea + both action buttons while running, then re-enable on completion.
+**Merge All (`🔀 Merge All`)**
 
-## Tab 2 — Create PRs
+- **API**: `PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge` with `{ "merge_method": "merge" }` via `mergePr()`
+- ✅ on success; ❌ + error message on failure (e.g. "Pull Request is not mergeable")
+- Summary: `"✅ All N PR(s) merged!"` / `"⚠️ X merged, Y failed."`
 
-- **Org + filter config** loaded from `config.js`: `ORG`, `REPO_PREFIXES`, `REPO_SUFFIXES`
-- `fetchFilteredRepos()` — paginates `GET /orgs/{org}/repos`, filters by prefix + suffix + `archived: false`
-- **From/To branch inputs** accept comma-separated fallback names (e.g. `dev, develop`); `branchExists()` checks each per repo in order
-- `createPrWithFallback()` resolves the first existing from/to branch per repo then calls `createPr()`
-- `createPr()` — `POST /repos/{owner}/{repo}/pulls`; on `422` checks `errors[0].message` for "already exists" → calls `getExistingPr()` and returns `{ status: "exists", pr }`
-- Error rows link to `/{owner}/{repo}/pulls`; ⚠️ and ✅ rows link to the specific PR
-- **📋 Copy PRs** button appears after run; copies all ✅/⚠️ PR URLs to clipboard
-- **🗑 Clear** resets inputs, results, and removes `create_prs_state` from storage
-- Full results state is serialized to `chrome.storage.local` after each run and restored on popup open
+All three buttons disable textarea + all three action buttons while running, then re-enable on completion.
 
 ## Do Not
 
