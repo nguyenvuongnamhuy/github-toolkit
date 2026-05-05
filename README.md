@@ -1,0 +1,74 @@
+# GitHub Toolkit
+
+A Chrome extension to manage GitHub Pull Requests — bulk approve and auto-create PRs across multiple repositories.
+
+## Features
+
+### Tab 1 — Bulk Approve
+
+- Paste up to hundreds of PR URLs at once (one per line)
+- Smart URL extraction — works even if lines have noise like `[TAG] url ✅` or `:::: url (note)`
+- Approves all PRs in parallel via GitHub API
+- Per-PR status: ⏳ pending → ✅ approved / ❌ failed
+- Clickable result links (`owner/repo #123`)
+- URLs are saved so they persist after closing the popup
+
+### Tab 2 — Create PRs
+
+- Auto-fetches all non-archived repos in the `your-org` org matching prefix `your-prefix` and suffix `your-subfix`
+- Enter **From branch** and **To branch** — both support multiple comma-separated fallbacks (e.g. `dev, develop`) tried in order per repo
+- Creates PRs in parallel with auto-generated title `Merge <from> into <to>`
+- Per-repo status: ✅ created / ⚠️ already exists (with link) / ❌ error (links to repo's pulls page)
+- **📋 Copy PRs** button copies all successful/existing PR URLs to clipboard
+- Results persist after closing the popup; **🗑 Clear** button resets everything
+
+## Setup
+
+### 1. Get a GitHub Personal Access Token
+
+Go to [GitHub → Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens) and create a token with the `repo` scope.
+
+### 2. Add your token
+
+Copy `config.example.js` to `config.js` and fill in your token:
+
+```js
+const GITHUB_TOKEN = "ghp_your_actual_token_here";
+```
+
+> `config.js` is gitignored and will never be committed.
+
+### 3. Load the extension in Chrome
+
+1. Open `chrome://extensions/`
+2. Enable **Developer mode** (top right)
+3. Click **Load unpacked**
+4. Select this folder
+
+## Usage
+
+**Bulk Approve:**
+
+1. Click the extension icon
+2. Paste PR URLs into the textarea (one per line)
+3. Click **✅ Approve All**
+
+**Create PRs:**
+
+1. Switch to the **🔀 Create PRs** tab
+2. Enter From branch (e.g. `dev, develop`) and To branch (e.g. `test`)
+3. Click **🔀 Create PRs**
+4. Results appear below — click any row to open the PR or repo
+
+## Project Structure
+
+```
+├── src/
+│   ├── popup.html
+│   ├── popup.css
+│   └── popup.js
+├── icons/
+├── manifest.json
+├── config.js            # your token (gitignored)
+└── config.example.js
+```
