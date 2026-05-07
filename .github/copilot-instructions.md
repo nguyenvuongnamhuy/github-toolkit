@@ -2,16 +2,17 @@
 
 ## Project Overview
 
-A Chrome extension (Manifest V3) to manage GitHub Pull Requests: create PRs across org repos, bulk-approve, merge, and check status. Two-tab popup UI. Tab order: **Create PRs** (first, default active), **Manage PRs** (second).
+A Chrome extension (Manifest V3) to manage GitHub Pull Requests: create branches, create PRs across org repos, bulk-approve, merge, and check status. Three-tab popup UI. Tab order: **Init Branch** (first, default active), **Create PRs** (second), **Manage PRs** (third).
 
 ## Structure
 
 ```
 ├── src/
-│   ├── popup.html       # Extension popup UI (tab bar + 2 tab panels)
+│   ├── popup.html       # Extension popup UI (tab bar + 3 tab panels)
 │   ├── popup.css        # Light theme styles (GitHub-style)
 │   ├── popup.js         # Constants (STORAGE_KEY*) + tab switching only
-│   ├── github-api.js    # All GitHub API functions (authHeaders, parsePrUrl, approvePr, mergePr, getPrStatus, fetchFilteredRepos, createPr, etc.)
+│   ├── github-api.js    # All GitHub API functions (authHeaders, parsePrUrl, approvePr, mergePr, getPrStatus, fetchFilteredRepos, createPr, getRefSha, createBranch, deleteBranch, etc.)
+│   ├── init-branch.js   # Tab "Init Branch" — repo list, search/filter, Init / Delete branch handlers
 │   ├── manage-prs.js    # Tab "Manage PRs" — element refs, UI helpers, Check Status / Approve All / Merge All handlers
 │   └── create-prs.js    # Tab "Create PRs" — element refs, UI helpers, Create PRs handler, state restore
 ├── icons/               # icon16.png, icon48.png, icon128.png
@@ -24,11 +25,24 @@ A Chrome extension (Manifest V3) to manage GitHub Pull Requests: create PRs acro
 
 - **No build step** — plain HTML/CSS/JS, loaded directly by Chrome
 - **`config.js`** is gitignored; exports globals `GITHUB_TOKEN`, `ORG`, `REPO_PREFIXES`, `REPO_SUFFIXES` loaded before other scripts in the HTML
-- **Script load order**: `config.js` → `popup.js` → `github-api.js` → `manage-prs.js` → `create-prs.js` — all share global scope, no build step
+- **Script load order**: `config.js` → `popup.js` → `github-api.js` → `init-branch.js` → `manage-prs.js` → `create-prs.js` — all share global scope, no build step
 - **Tab switching** — `.tab-btn[data-tab]` toggles `.hidden` on `.tab-panel` elements
-- **`chrome.storage.local`** — Tab 1 persists textarea URLs under `pr_urls`; Tab 2 persists full results state under `create_prs_state`
+- **`chrome.storage.local`** — Tab 2 persists textarea URLs under `pr_urls`; Tab 2 persists full results state under `create_prs_state`
 - All API calls use `authHeaders()` shared helper returning `Authorization: token <PAT>` headers
 - Results are rendered as `<a>` tags; `Promise.allSettled` is used throughout so failures never block other items
+
+## Tab 0 — Init Branch
+
+- **Auto-loads** repo list every time the popup becomes visible (`document.visibilitychange`), using `fetchFilteredRepos()` (shared with Create PRs)
+- **Search input** filters the checkbox list realtime (case-insensitive substring); checked state preserved across filter changes via a `Set` (`checkedRepos`)
+- **New branch → Base branch** inputs: New branch is free text; Base branch defaults to `dev, develop` (comma-separated fallback, tried in order via `branchExists()`)
+- **🌿 Init**: for each selected repo — resolve base branch → `getRefSha()` → `createBranch()`; `Promise.allSettled` so all run in parallel
+  - ✅ created / ⚠️ Already exists / ❌ error
+  - Summary: `"✅ X created, ⚠️ Y already existed, ❌ Z failed."`
+- **🗑 Delete**: `confirm()` dialog first; then `deleteBranch()` on each selected repo in parallel
+  - ✅ deleted / ⚠️ Branch not found / ❌ error
+- Both buttons disable all controls while running, re-enable on completion
+- **No state persisted** to `chrome.storage` — list and selections reset each popup open
 
 ## Tab 1 — Create PRs
 

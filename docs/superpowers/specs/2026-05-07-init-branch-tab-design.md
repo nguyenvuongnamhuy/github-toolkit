@@ -119,13 +119,13 @@ async function deleteBranch(owner, repo, branch) { ... }
 
 ## Files Changed
 
-| File | Change |
-|---|---|
-| `src/popup.html` | Add tab button `data-tab="init"` (first position); add `#tab-init` panel |
-| `src/popup.js` | Update tab switching to include `init` tab; set `init` as default active |
-| `src/github-api.js` | Add `getRefSha()`, `createBranch()`, `deleteBranch()` |
-| `src/init-branch.js` | New file — all Init Branch tab logic |
-| `src/popup.html` | Add `<script src="init-branch.js">` after `github-api.js` |
+| File                 | Change                                                                   |
+| -------------------- | ------------------------------------------------------------------------ |
+| `src/popup.html`     | Add tab button `data-tab="init"` (first position); add `#tab-init` panel |
+| `src/popup.js`       | Update tab switching to include `init` tab; set `init` as default active |
+| `src/github-api.js`  | Add `getRefSha()`, `createBranch()`, `deleteBranch()`                    |
+| `src/init-branch.js` | New file — all Init Branch tab logic                                     |
+| `src/popup.html`     | Add `<script src="init-branch.js">` after `github-api.js`                |
 
 ---
 

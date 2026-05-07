@@ -182,3 +182,62 @@ async function createPr(owner, repo, head, base) {
   const pr = await response.json();
   return { status: "created", pr };
 }
+
+// ── Init Branch API ──────────────────────────────────────────
+async function getRefSha(owner, repo, branch) {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`,
+    { headers: authHeaders() },
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${response.status}`);
+  }
+  const data = await response.json();
+  return data.object.sha;
+}
+
+async function createBranch(owner, repo, newBranch, sha) {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/git/refs`,
+    {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ ref: `refs/heads/${newBranch}`, sha }),
+    },
+  );
+  if (response.status === 422) {
+    const err = await response.json().catch(() => ({}));
+    const msg = (err.message || "").toLowerCase();
+    if (
+      msg.includes("already exists") ||
+      msg.includes("reference already exists")
+    ) {
+      return { status: "exists" };
+    }
+    throw new Error(err.message || `HTTP 422`);
+  }
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${response.status}`);
+  }
+  return { status: "created" };
+}
+
+async function deleteBranch(owner, repo, branch) {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${encodeURIComponent(branch)}`,
+    {
+      method: "DELETE",
+      headers: authHeaders(),
+    },
+  );
+  if (response.status === 404) {
+    return { status: "not_found" };
+  }
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${response.status}`);
+  }
+  return { status: "deleted" };
+}

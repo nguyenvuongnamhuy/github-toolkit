@@ -16,12 +16,39 @@
     </header>
 
     <div class="tab-bar">
-      <button class="tab-btn active" data-tab="create">🔀 Create PRs</button>
+      <button class="tab-btn active" data-tab="init">🌿 Init Branch</button>
+      <button class="tab-btn" data-tab="create">🔀 Create PRs</button>
       <button class="tab-btn" data-tab="approve">📋 Manage PRs</button>
     </div>
 
+    <!-- Tab 0: Init Branch -->
+    <div class="tab-panel" id="tab-init">
+      <div class="branch-inputs">
+        <div class="input-group">
+          <label class="input-label">New branch</label>
+          <input type="text" id="init-new-branch" class="branch-input" placeholder="e.g. base/my-feature" />
+        </div>
+        <span class="branch-arrow">→</span>
+        <div class="input-group">
+          <label class="input-label">Base branch</label>
+          <input type="text" id="init-base-branch" class="branch-input" value="dev, develop" />
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom: 8px;">
+        <label class="input-label">Search repos</label>
+        <input type="text" id="init-search" class="branch-input" placeholder="Filter by repo name..." />
+      </div>
+      <div id="init-repo-list" class="init-repo-list"></div>
+      <div class="actions">
+        <button id="init-btn" class="btn btn-primary">🌿 Init</button>
+        <button id="delete-branch-btn" class="btn btn-danger">🗑 Delete</button>
+      </div>
+      <div id="init-status" class="global-status hidden"></div>
+      <div id="init-result-list" class="result-list"></div>
+    </div>
+
     <!-- Tab 1: Create PRs -->
-    <div class="tab-panel" id="tab-create">
+    <div class="tab-panel hidden" id="tab-create">
       <div class="branch-inputs">
         <div class="input-group">
           <label class="input-label">From branch</label>
@@ -63,6 +90,7 @@
   <script src="../config.js"></script>
   <script src="popup.js"></script>
   <script src="github-api.js"></script>
+  <script src="init-branch.js"></script>
   <script src="manage-prs.js"></script>
   <script src="create-prs.js"></script>
 </body>

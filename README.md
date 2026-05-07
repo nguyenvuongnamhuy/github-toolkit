@@ -1,11 +1,21 @@
 # GitHub Toolkit
 
-A Chrome extension to manage GitHub Pull Requests — create PRs, bulk-approve, merge, and check status across multiple repositories.
+A Chrome extension to manage GitHub branches and Pull Requests — init/delete branches, create PRs, bulk-approve, merge, and check status across multiple repositories.
 
 <img width="481" height="241" alt="Screenshot 2026-05-05 at 17 54 28" src="https://github.com/user-attachments/assets/fd3dbbea-d3c8-496d-8999-a59e16d0a607" />
 <img width="482" height="390" alt="Screenshot 2026-05-05 at 17 54 35" src="https://github.com/user-attachments/assets/fc80bfa0-dcba-4289-a8d9-95bdba89c08c" />
 
 ## Features
+
+### Tab 0 — Init Branch
+
+- Auto-loads all matching repos every time the popup opens
+- Search box to filter repos by name in real-time; checked state preserved across searches
+- Enter **New branch** name and **Base branch** (default: `dev, develop` — comma-separated fallbacks tried in order)
+- **🌿 Init** — creates the new branch on remote for all selected repos in parallel
+  - ✅ created / ⚠️ already exists / ❌ error, per repo
+- **🗑 Delete** — deletes the branch from remote with a confirmation dialog
+  - ✅ deleted / ⚠️ branch not found / ❌ error, per repo
 
 ### Tab 1 — Create PRs
 
@@ -54,9 +64,16 @@ const GITHUB_TOKEN = "ghp_your_actual_token_here";
 
 ## Usage
 
+**Init Branch:**
+
+1. Click the extension icon (opens on **🌿 Init Branch** tab)
+2. Repos load automatically
+3. Enter the new branch name; optionally update the base branch
+4. Check the repos you want, then click **🌿 Init** or **🗑 Delete**
+
 **Create PRs:**
 
-1. Click the extension icon (opens on **🔀 Create PRs** tab)
+1. Switch to the **🔀 Create PRs** tab
 2. Enter From branch (e.g. `dev, develop`) and To branch (e.g. `test`)
 3. Click **🔀 Create PRs**
 4. Results appear below — click any row to open the PR or repo
@@ -73,7 +90,11 @@ const GITHUB_TOKEN = "ghp_your_actual_token_here";
 ├── src/
 │   ├── popup.html
 │   ├── popup.css
-│   └── popup.js
+│   ├── popup.js
+│   ├── github-api.js
+│   ├── init-branch.js
+│   ├── manage-prs.js
+│   └── create-prs.js
 ├── icons/
 ├── manifest.json
 ├── config.js            # sensitive information (gitignored)

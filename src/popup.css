@@ -247,11 +247,18 @@ h1 {
   background: #f6f8fa;
 }
 
-/* Branch inputs (Tab 2) */
 .branch-inputs {
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
+  align-items: flex-end;
+}
+
+.branch-arrow {
+  font-size: 16px;
+  color: #57606a;
+  padding-bottom: 8px;
+  flex-shrink: 0;
 }
 
 .input-group {
@@ -286,4 +293,56 @@ h1 {
 /* Warn state — PR already exists */
 .result-row.warn {
   border-left: 3px solid #bf8700;
+}
+
+/* Init Branch — repo list */
+.init-repo-list {
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  background: #f6f8fa;
+  margin-bottom: 10px;
+}
+
+.repo-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #1f2328;
+  cursor: pointer;
+  border-bottom: 1px solid #eaeef2;
+  user-select: none;
+}
+
+.repo-item:last-child {
+  border-bottom: none;
+}
+
+.repo-item:hover {
+  background: #eaeef2;
+}
+
+.repo-item input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: #0969da;
+}
+
+.init-repo-empty {
+  padding: 12px;
+  font-size: 12px;
+  color: #57606a;
+  text-align: center;
+}
+
+.btn-danger {
+  background: #cf222e;
+  color: #fff;
+  flex: 1;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #a40e26;
 }
